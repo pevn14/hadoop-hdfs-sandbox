@@ -1,0 +1,3 @@
+*.tmp
+/lorem-ipsum-generator/*.txt
+/cluster-docker/tmp
