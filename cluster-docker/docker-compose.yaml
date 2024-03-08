@@ -1,34 +1,77 @@
 version: "2"
 services:
-   namenode:
-      image: apache/hadoop:3
-      hostname: namenode
-      command: ["hdfs", "namenode"]
-      ports:
-        - 9870:9870
-        - 8020:8020  # Expose the HDFS port
-      env_file:
-        - ./config
-      environment:
-          ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
-   datanode:
-      image: apache/hadoop:3
-      command: ["hdfs", "datanode"]
-      env_file:
-        - ./config      
-   resourcemanager:
-      image: apache/hadoop:3
-      hostname: resourcemanager
-      command: ["yarn", "resourcemanager"]
-      ports:
-         - 8088:8088
-      env_file:
-        - ./config
-      volumes:
-        - ./test.sh:/opt/test.sh
-        - ./tmp:/opt/tmp
-   nodemanager:
-      image: apache/hadoop:3
-      command: ["yarn", "nodemanager"]
-      env_file:
-        - ./config
+  namenode:
+    image: apache/hadoop:3
+    hostname: namenode
+    command: ["hdfs", "namenode"]
+    ports:
+      - 9870:9870
+      - 8020:8020  # Expose the HDFS port for spark (yarn)
+    networks:
+      - hadoop-network
+    env_file:
+      - ./config
+    environment:
+      ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
+
+  # le datanode public expose le port 9864 for data transfert (HdfsCLI)
+  datanode_public:            
+    image: apache/hadoop:3
+    hostname: datanode-public
+    command: ["hdfs", "datanode"]
+    ports:
+      - 9864:9864     
+    networks:
+      - hadoop-network
+    env_file:
+      - ./config
+  
+  # les datanodes privés n'exposent pas le port 9864
+  # si besoin dupliquer les datanodes privées avec un indice incremental 1,2 ... plutot que l'option -- scale
+  # leurs hostnames sont necessaires à la resolution @ip lors d'un appel à un datanode par appli externe
+  # et ceci même si seulement le port de la datanode-public est exposé
+  # et doivent etre declaré au besoin (utilisation de HdfsCLI) dans le /etc/hosts de la machine hote
+  datanode1:
+    image: apache/hadoop:3
+    hostname: datanode1
+    command: ["hdfs", "datanode"]
+    networks:
+      - hadoop-network
+    env_file:
+      - ./config
+
+  datanode2:
+    image: apache/hadoop:3
+    hostname: datanode2
+    command: ["hdfs", "datanode"]
+    networks:
+      - hadoop-network
+    env_file:
+      - ./config
+
+  resourcemanager:
+    image: apache/hadoop:3
+    hostname: resourcemanager
+    command: ["yarn", "resourcemanager"]
+    ports:
+      - 8088:8088
+    networks:
+      - hadoop-network
+    env_file:
+      - ./config
+    volumes:
+      - ./test.sh:/opt/test.sh
+      - ./tmp:/opt/tmp
+
+  nodemanager:
+    image: apache/hadoop:3
+    hostname: nodemanager
+    command: ["yarn", "nodemanager"]
+    networks:
+      - hadoop-network
+    env_file:
+      - ./config
+
+networks:
+  hadoop-network:
+    driver: bridge
