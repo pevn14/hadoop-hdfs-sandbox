@@ -1,3 +1,4 @@
 *.tmp
 /lorem-ipsum-generator/*.txt
 /cluster-docker/tmp
+/python-client/*.txt
