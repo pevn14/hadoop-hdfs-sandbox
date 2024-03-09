@@ -7,4 +7,7 @@ Creation d'un cluster hadoop/hdfs de test
 Generateur de fichier texte lorem-ipsum
 
 ## repertoire spark-with-hadoop-hdfs
-script de tests spark avec hdfs 
+Script de tests spark avec hdfs 
+
+## repertoire python-client
+notebook jupyter utilisant HdfsCLI
